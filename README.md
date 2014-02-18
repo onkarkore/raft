@@ -54,10 +54,8 @@ Raft - Leader Election Implementation
 	currentLeader file contains id of current leader of a cluster.
 		
 4. How to run?
-	
 	- go get github.com/onkarkore/raft/
 	- go test github.com/onkarkore/raft/
-
 
 5. References 
 

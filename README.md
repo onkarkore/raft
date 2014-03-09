@@ -50,14 +50,19 @@ Raft - Leader Election Implementation
 
 3. Log files
 
-	log folder is created at the start which contain last term of each server.
-	currentLeader file contains id of current leader of a cluster.
+	log folder is created at the start for each server which contain term and leader number.
+	
 		
 4. How to run?
 	- go get github.com/onkarkore/raft/
+	- build /dummy/raftmain.go 
+		go build raftmain.go
+	- run python script to create config file for each server
+		python configcreator.py <HearbeatTImeout> <EectionTimeout>
 	- go test github.com/onkarkore/raft/
 
 5. References 
 
 	- go language tutorial
 	- raft paper
+	- http://golang.org/pkg/net/rpc/

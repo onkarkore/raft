@@ -10,23 +10,22 @@ Raft - Leader Election Implementation
 2. Working
 
 	Cluster library which is used for
-		 - To create n-number of servers 
+	
+		 - To create n-number of servers
 		 - To queue outgoing message in the outbox of each server
 		 - To queue incoming message in the inbox of each server
 		 
 	Raft library which is used for leader selection based on maximum number of votes by peers.
 
+
 3. How to run?
-	
-	- go get github.com/onkarkore/raft/
-	
-	- build /dummy/raftmain.go 
-		go build raftmain.go
-	
-	- run python script to create config file for each server
-		python configcreator.py <HearbeatTImeout> <EectionTimeout>
-	
-	- go test github.com/onkarkore/raft/
+
+		- go get github.com/onkarkore/raft/
+		- build /dummy/raftmain.go 
+			go build raftmain.go
+		- run python script to create config file for each server
+			python configcreator.py <HearbeatTImeout> <EectionTimeout>
+		- go test github.com/onkarkore/raft/
 
 
 4. Testing

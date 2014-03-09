@@ -6,23 +6,22 @@
 package main
 
 import (
+	raft "github.com/onkarkore/raft"
+	"net/http"
+	"net/rpc"
 	"os"
 	"time"
-	raft "github.com/onkarkore/raft"
-	"net/rpc"
-	"net/http"
 )
 
 type Args struct {
 }
 
 type Results struct {
-	Term int
+	Term         int
 	CurrentState int
 }
 
 type RPCMethods struct {
-  
 }
 
 var r raft.RaftData
@@ -37,31 +36,24 @@ func main() {
 	rpc.Register(&RPCMethods{})
 	rpc.HandleHTTP()
 	go http.ListenAndServe(":"+os.Args[2], nil)
-	
+
 	StartRaftTesting()
 }
 
-
-
 func StartRaftTesting() {
 
-	raft.AllocateRaft(os.Args[1],&r)
-		
-	for{	
+	raft.AllocateRaft(os.Args[1], &r)
+
+	for {
 		select {
-			case <-time.After(5 * time.Second):
-			
+		case <-time.After(5 * time.Second):
+
 		}
 	}
 }
 
-
-func (m *RPCMethods) GetTerm (args Args, results *Results) error {
+func (m *RPCMethods) GetTerm(args Args, results *Results) error {
 	results.Term = r.Term
 	results.CurrentState = r.ServerType
-	return nil  // no error
+	return nil // no error
 }
-
-
-
-

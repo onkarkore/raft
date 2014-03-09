@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	s                []ServerData
-	
+	s []ServerData
 )
 
 /*
@@ -29,31 +28,30 @@ var (
 	ServerType	- 1 leader, 2 candidate, 3 follower	
 */
 type RaftData struct {
-	Term          int
-	IsPrimary     bool
-	ServerNumber  int
-	LastVotedTo   int
-	NumberOfVotes int	
-	IsVoted       bool
-	ServerType    int 
-	server ServerData
+	Term             int
+	IsPrimary        bool
+	ServerNumber     int
+	LastVotedTo      int
+	NumberOfVotes    int
+	IsVoted          bool
+	ServerType       int
+	server           ServerData
 	ElectionTimeOut  time.Duration /* Election Timeout */
 	HeartbeatTimeOut time.Duration /* Heartbeat Timeout */
-	receivedVoteFrom map[int]bool 
+	receivedVoteFrom map[int]bool
 }
 
 /*
 	This function is used to create cluster and allocate 
 	term to each server.
 */
-func AllocateRaft(conFile string,r *RaftData)  {
+func AllocateRaft(conFile string, r *RaftData) {
 
 	/* Create cluster */
 	s = CreateServer(conFile)
 	configFile = conFile
-	t:=readTimeoutsFromFile()	
-	totalServers:=TotalNumberOfServers(conFile)
-	
+	t := readTimeoutsFromFile()
+	totalServers := TotalNumberOfServers(conFile)
 
 	/* Initialize raft data structure of each server */
 	for i := 0; i < 1; i++ {
@@ -65,12 +63,11 @@ func AllocateRaft(conFile string,r *RaftData)  {
 		r.ServerType = 3
 		r.server = s[i]
 		r.IsVoted = false
-		r.receivedVoteFrom = make (map[int]bool)
+		r.receivedVoteFrom = make(map[int]bool)
 		r.ElectionTimeOut = t.ElectionTimeOut
-		r.HeartbeatTimeOut = t.HeartbeatTimeOut 
+		r.HeartbeatTimeOut = t.HeartbeatTimeOut
 	}
 
-	
 	/* Start send and receive message service of each server */
 	for num := 0; num < 1; num++ {
 		go SendMsgtoServers(s[num].Outbox(), s[num])
@@ -80,13 +77,11 @@ func AllocateRaft(conFile string,r *RaftData)  {
 	go raftWorking(r, totalServers)
 }
 
-
-
 /*
 	This function is used to read last term of each server while 
 	booting at the start if present. 
 */
-func initializeFromFile(r *RaftData)  {	
+func initializeFromFile(r *RaftData) {
 	var e error
 
 	_, e = os.Stat("log")
@@ -105,7 +100,7 @@ func initializeFromFile(r *RaftData)  {
 
 	buf := bufio.NewReader(logfile)
 	if err != nil {
-		
+
 	} else {
 		for {
 
@@ -123,7 +118,7 @@ func initializeFromFile(r *RaftData)  {
 			r.Term, e = strconv.Atoi(parts[0])
 			print_error(e)
 
-			leader,e := strconv.Atoi(parts[1])
+			leader, e := strconv.Atoi(parts[1])
 			print_error(e)
 			if leader == r.ServerNumber {
 				r.IsPrimary = true
@@ -137,7 +132,7 @@ func initializeFromFile(r *RaftData)  {
 /*
 	Read HeartBeat and Election Timeout from cluster.conf file
 */
-func readTimeoutsFromFile() RaftData{
+func readTimeoutsFromFile() RaftData {
 
 	var t RaftData
 
@@ -146,7 +141,7 @@ func readTimeoutsFromFile() RaftData{
 
 	buf := bufio.NewReader(configfile)
 	if err != nil {
-		
+
 	} else {
 		for {
 			line, err := buf.ReadString('\n')
@@ -227,7 +222,7 @@ func raftWorking(r *RaftData, totalServer int) {
 					if str[0] == "Request" {
 						if r.Term < m.Term && !r.IsVoted {
 							r.Term = m.Term
-							r.LastVotedTo,_ = strconv.Atoi(str[1])
+							r.LastVotedTo, _ = strconv.Atoi(str[1])
 							r.IsVoted = true
 							go sentReply(r, str[1])
 						}
@@ -235,20 +230,20 @@ func raftWorking(r *RaftData, totalServer int) {
 
 					/* If message type is Reply then calculate number of votes and if number of votes greater than 							(number of servers/2) then assign this server as a leader */
 					if str[0] == "Reply" {
-					
-						rid,_ := strconv.Atoi(str[1])
+
+						rid, _ := strconv.Atoi(str[1])
 						if !r.receivedVoteFrom[rid] {
 							r.NumberOfVotes = r.NumberOfVotes + 1
 							r.receivedVoteFrom[rid] = true
 						}
-						
-						if (totalServer%2==1 && r.NumberOfVotes > (totalServer/2)) || (totalServer%2==0 && r.NumberOfVotes > (totalServer/2)-1) {
+
+						if (totalServer%2 == 1 && r.NumberOfVotes > (totalServer/2)) || (totalServer%2 == 0 && r.NumberOfVotes > (totalServer/2)-1) {
 							r.IsPrimary = true
 							r.ServerType = 1
 
 							lfile := "log" + "/log_for_servernumber_" + strconv.Itoa(r.ServerNumber)
 							logfile, _ := os.OpenFile(lfile, os.O_RDWR, 0600)
-							logfile.Write([]byte(strconv.Itoa(r.Term)+" "+strconv.Itoa(r.ServerNumber)+ "\n"))
+							logfile.Write([]byte(strconv.Itoa(r.Term) + " " + strconv.Itoa(r.ServerNumber) + "\n"))
 							logfile.Close()
 
 						}
@@ -260,16 +255,16 @@ func raftWorking(r *RaftData, totalServer int) {
 				}
 			/* One of the server become candidate after electointimeout and requesr for votes */
 			case <-time.After(r.ElectionTimeOut * time.Millisecond):
-					r.Term = r.Term + 1
-					r.LastVotedTo = r.ServerNumber
-					r.NumberOfVotes = 1
-					r.ServerType = 2
-					r.IsVoted = false
-					for key, _ := range r.receivedVoteFrom { 
-						delete(r.receivedVoteFrom,key)
-					}
+				r.Term = r.Term + 1
+				r.LastVotedTo = r.ServerNumber
+				r.NumberOfVotes = 1
+				r.ServerType = 2
+				r.IsVoted = false
+				for key, _ := range r.receivedVoteFrom {
+					delete(r.receivedVoteFrom, key)
+				}
 
-					go sentRequest(r)
+				go sentRequest(r)
 			}
 		}
 	}
@@ -309,5 +304,3 @@ func sentHeartbeatMessage(r *RaftData) {
 	e.Msg = "HeartBeat " + strconv.Itoa(r.ServerNumber)
 	r.server.Outbox() <- &e
 }
-
-

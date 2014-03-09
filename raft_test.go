@@ -180,7 +180,7 @@ func Test_main(t *testing.T) {
 				}
 				
 				if leadercount>1{
-					fmt.Println("More than two leaders")
+					t.Error("More than two leaders")
 					fmt.Println("FAIL")
 					for j:=0;j<totalnumber;j++{
 						client[j].Close()					
